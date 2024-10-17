@@ -102,3 +102,21 @@ app.patch('/contatos/:id', (req, res) => {
     res.status(200).json(contatoAtualizado)
   })
 })
+
+app.delete('/contatos/:id', (req, res) => {
+  const id = req.params.id
+
+  const sql = 'DELETE FROM contatos WHERE id = ?'
+  db.query(sql, [id], (err, result) => {
+    if (err) {
+      console.error('Erro ao excluir contato:', err)
+      return res.status(500).json({ erro: 'Erro ao excluir contato' })
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ erro: 'Contato não encontrado' })
+    }
+
+    res.status(204).end()
+  })
+})
