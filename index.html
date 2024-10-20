@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connectify</title>
+  <link href="https://cdn.jsdelivr.net/npm/vuetify@3.7.3/dist/vuetify.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font/css/materialdesignicons.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+  <div id="app">
+    <v-app>
+      <v-container>
+        <v-row>
+          <v-col>
+            <h1>Connectify - Gerenciador de Contatos</h1>
+            <v-btn color="primary" @click="openCreateModal">Adicionar Contato</v-btn>
+            <v-data-table
+              :headers="headers"
+              :items="contacts"
+              class="elevation-1 mt-4"
+            >
+              <template v-slot:item.action="{ item }">
+                <v-btn color="blue" @click="editContact(item)">Editar</v-btn>
+                <v-btn color="red" @click="deleteContact(item.id)">Excluir</v-btn>
+              </template>
+            </v-data-table>
+          </v-col>
+        </v-row>
+
+        <v-dialog v-model="dialog" max-width="500px">
+          <v-card>
+            <v-card-title>
+              <span class="headline">{{ editedContact ? 'Editar' : 'Adicionar' }} Contato</span>
+            </v-card-title>
+
+            <v-card-text>
+              <v-form ref="form" v-model="valid">
+                <v-text-field label="Nome" v-model="newContact.nome" :rules="[rules.required, rules.minLength]"
+                  required></v-text-field>
+                <v-text-field label="Telefone" v-model="newContact.telefone" :rules="[rules.required, rules.phone]"
+                  required placeholder="(XX) XXXXX-XXXX" mask="(##) #####-####"></v-text-field>
+              </v-form>
+            </v-card-text>
+
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue darken-1" text @click="closeModal">Cancelar</v-btn>
+              <v-btn color="green darken-1" text @click="saveContact">Salvar</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </v-container>
+    </v-app>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vuetify@3.7.3/dist/vuetify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script>
+    const { createVuetify } = Vuetify
+    const vuetify = createVuetify()
+
+    const app = Vue.createApp({
+      data() {
+        return {
+          contacts: [],
+          newContact: { nome: '', telefone: '' },
+          editedContact: null,
+          dialog: false,
+          valid: true,
+          headers: [
+            { title: 'Nome', key: 'nome' },
+            { title: 'Telefone', key: 'telefone' },
+            { title: 'Ações', key: 'action', sortable: false },
+          ],
+          rules: {
+            required: value => !!value || 'Campo obrigatório.',
+            minLength: value => (value && value.length >= 3) || 'Mínimo de 3 caracteres',
+            phone: value => /^\(\d{2}\)\s\d{4,5}-\d{4}$/.test(value) || 'Telefone inválido'
+          },
+        }
+      },
+      methods: {
+        async fetchContacts() {
+          try {
+            const response = await axios.get('http://localhost:3000/contatos')
+            this.contacts = response.data
+          } catch (error) {
+            console.error('Erro ao buscar contatos:', error)
+          }
+        },
+        async saveContact() {
+          if (this.$refs.form.validate()) {
+            try {
+              if (this.editContact) {
+                await axios.patch(`http://localhost:3000/contatos/${this.editContact.id}`, this.newContact)
+              } else {
+                console.log(this.newContact)
+                const response = await axios.post('http://localhost:3000/contatos', this.newContact)
+                this.contacts.push(response.data)
+              }
+              this.fetchContacts()
+              this.closeModal()
+            } catch (error) {
+              console.error('Erro ao salvar contato:', error)
+            }
+          }
+        },
+        async deleteContact(id) {
+          try {
+            await axios.delete(`http://localhost:3000/contatos/${id}`)
+            this.fetchContacts()
+          } catch (error) {
+            console.error('Erro ao excluir contato:', error)
+          }
+        },
+        openCreateModal() {
+          this.dialog = true
+          this.newContact = { nome: '', telefone: '' }
+          this.editContact = null
+        },
+        editContact(contact) {
+          this.newContact = { ...contact }
+          this.editContact = contact
+          this.dialog = true
+        },
+        closeModal() {
+          this.dialog = false
+        },
+      },
+      mounted() {
+        this.fetchContacts()
+      },
+    }
+  )
+
+  app.use(vuetify)
+  app.mount('#app')  
+  </script>
+</body>
+</html>
