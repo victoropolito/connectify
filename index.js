@@ -1,8 +1,8 @@
 require('dotenv').config()
 
 const express = require('express')
+const cors = require('cors');
 const mysql = require('mysql2')
-
 const app = express()
 const port = 3000
 
@@ -10,11 +10,11 @@ const db = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  database: process.env.DB_DATABASE   
-  
+  database: process.env.DB_DATABASE
 })
 
 app.use(express.json())
+app.use(cors());
 
 db.connect((err) => {
   if (err) {
@@ -35,7 +35,7 @@ app.post('/contatos', (req, res) => {
     return res.status(400).json({ erro: 'Nome e telefone são obrigatórios' })
   }
 
-  const nomeValido = nome.split(' ').filter(palavra => palavra.length >= 3).length >= 2
+  const nomeValido = nome.split(' ').filter(word => word.length >= 3).length >= 2
   if (!nomeValido) {
     return res.status(400).json({ erro: 'Nome deve ter no mínimo duas palavras com 3 letras cada' })
   }
@@ -77,7 +77,7 @@ app.patch('/contatos/:id', (req, res) => {
     return res.status(400).json({ erro: 'Nome e telefone são obrigatórios' })
   }
 
-  const nomeValido = nome.split(' ').filter(palavra => palavra.length >= 3).length >= 2
+  const nomeValido = nome.split(' ').filter(word => word.length >= 3).length >= 2
   if (!nomeValido) {
     return res.status(400).json({ erro: 'Nome deve ter no mínimo duas palavras com 3 letras cada' })
   }
