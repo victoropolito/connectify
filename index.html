@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,25 +17,26 @@
           <v-col>
             <h1>Connectify - Gerenciador de Contatos</h1>
             <v-btn color="primary" @click="openCreateModal">Adicionar Contato</v-btn>
-            <v-data-table
-              :headers="headers"
-              :items="contacts"
-              class="elevation-1 mt-4"
-            >
+            <v-data-table :headers="headers" :items="contacts" class="elevation-1 mt-4">
+              <template v-slot:item.telefone="{ item }">
+                <td :style="{ backgroundColor: item.telefone.startsWith('(11)') ? 'lightblue' : '' }">
+                  {{ item.telefone }}
+                </td>
+              </template>
               <template v-slot:item.action="{ item }">
-                <v-btn color="blue" @click="editContact(item)">Editar</v-btn>
-                <v-btn color="red" @click="deleteContact(item.id)">Excluir</v-btn>
+                <div class="d-flex flex-wrap ga-1">
+                  <v-btn color="blue" @click="editContact(item)" density="comfortable" icon="mdi-pencil"></v-btn>
+                  <v-btn color="red" @click="deleteContact(item.id)" density="comfortable" icon="mdi-delete"></v-btn>
+                </div>
               </template>
             </v-data-table>
           </v-col>
         </v-row>
-
         <v-dialog v-model="dialog" max-width="500px">
           <v-card>
             <v-card-title>
-              <span class="headline">{{ editedContact ? 'Editar' : 'Adicionar' }} Contato</span>
+              <span class="headline">Adicionar Contato</span>
             </v-card-title>
-
             <v-card-text>
               <v-form ref="form" v-model="valid">
                 <v-text-field label="Nome" v-model="newContact.nome" :rules="[rules.required, rules.minLength]"
@@ -44,11 +45,30 @@
                   required placeholder="(XX) XXXXX-XXXX" mask="(##) #####-####"></v-text-field>
               </v-form>
             </v-card-text>
-
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn color="blue darken-1" text @click="closeModal">Cancelar</v-btn>
-              <v-btn color="green darken-1" text @click="saveContact">Salvar</v-btn>
+              <v-btn color="green darken-1" text @click="saveContact" :disabled="!valid">Salvar</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+        <v-dialog v-model="dialogEdit" max-width="500px">
+          <v-card>
+            <v-card-title>
+              <span class="headline">Editar Contato</span>
+            </v-card-title>
+            <v-card-text>
+              <v-form ref="formEdit" v-model="valid">
+                <v-text-field label="Nome" v-model="editedContact.nome" :rules="[rules.required, rules.minLength]"
+                  required></v-text-field>
+                <v-text-field label="Telefone" v-model="editedContact.telefone" :rules="[rules.required, rules.phone]"
+                  required placeholder="(XX) XXXXX-XXXX" mask="(##) #####-####"></v-text-field>
+              </v-form>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue darken-1" text @click="closeEditModal">Cancelar</v-btn>
+              <v-btn color="green darken-1" text @click="updateContact" :disabled="!valid">Salvar</v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
@@ -70,6 +90,8 @@
           editedContact: null,
           dialog: false,
           valid: true,
+          dialogEdit: false,
+          editedContact: { nome: '', telefone: '' },
           headers: [
             { title: 'Nome', key: 'nome' },
             { title: 'Telefone', key: 'telefone' },
@@ -77,8 +99,8 @@
           ],
           rules: {
             required: value => !!value || 'Campo obrigatório.',
-            minLength: value => (value && value.length >= 3) || 'Mínimo de 3 caracteres',
-            phone: value => /^\(\d{2}\)\s\d{4,5}-\d{4}$/.test(value) || 'Telefone inválido'
+            minLength: value => value && value.length >= 3 || 'Mínimo de 3 caracteres em cada nome',
+            phone: value => /^\(\d{2}\)\s\d{4,5}-\d{4}$/.test(value) || /^\(\d{2}\)\d{4,5}-\d{4}$/.test(value) || /^\(\d{2}\)\d{4,5}\d{4}$/.test(value) || 'Telefone inválido'
           },
         }
       },
@@ -94,17 +116,23 @@
         async saveContact() {
           if (this.$refs.form.validate()) {
             try {
-              if (this.editContact) {
-                await axios.patch(`http://localhost:3000/contatos/${this.editContact.id}`, this.newContact)
-              } else {
-                console.log(this.newContact)
-                const response = await axios.post('http://localhost:3000/contatos', this.newContact)
-                this.contacts.push(response.data)
-              }
-              this.fetchContacts()
+              const response = await axios.post('http://localhost:3000/contatos', this.newContact)
+              this.contacts.push(response.data)
               this.closeModal()
+              this.fetchContacts()
             } catch (error) {
               console.error('Erro ao salvar contato:', error)
+            }
+          }
+        },
+        async updateContact() {
+          if (this.$refs.formEdit.validate()) {
+            try {
+              await axios.patch(`http://localhost:3000/contatos/${this.editedContact.id}`, this.editedContact)
+              this.closeEditModal()
+              this.fetchContacts()
+            } catch (error) {
+              console.error('Erro ao atualizar contato:', error)
             }
           }
         },
@@ -119,12 +147,14 @@
         openCreateModal() {
           this.dialog = true
           this.newContact = { nome: '', telefone: '' }
-          this.editContact = null
         },
         editContact(contact) {
-          this.newContact = { ...contact }
-          this.editContact = contact
-          this.dialog = true
+          this.editedContact = { ...contact }
+          this.dialogEdit = true
+        },
+        closeEditModal() {
+          this.dialogEdit = false
+          this.editedContact = { nome: '', telefone: '' }
         },
         closeModal() {
           this.dialog = false
@@ -133,11 +163,10 @@
       mounted() {
         this.fetchContacts()
       },
-    }
-  )
+    })
 
-  app.use(vuetify)
-  app.mount('#app')  
+    app.use(vuetify)
+    app.mount('#app')  
   </script>
 </body>
 </html>
