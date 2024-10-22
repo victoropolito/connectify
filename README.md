@@ -12,7 +12,7 @@ Aplicação web para gerenciar contatos, com backend em Node.js e frontend em Vu
 * Formatação da tabela com base no DDD
 
 ## Tecnologias utilizadas
-* Node.js
+* Node.js - Caso não tenha instalado na sua máquina, basta acessar o link: `https://nodejs.org/en/download/package-manager`.
 * Express
 * MySQL
 * Vue.js
