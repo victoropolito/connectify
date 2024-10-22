@@ -48,7 +48,7 @@
                   required 
                   placeholder="(XX) XXXX-XXXX" 
                   mask="(##) ####-####"
-                  @input="formatPhoneNumber"
+                  @input="formatPhoneNumber(false)"
                 >
                 </v-text-field>
               </v-form>
@@ -160,7 +160,7 @@
             console.error('Erro ao excluir contato:', error)
           }
         },
-        formatPhoneNumber(isEdit = false) {
+        formatPhoneNumber(isEdit) {
           let phone = isEdit ? this.editedContact.telefone : this.newContact.telefone
           phone = phone.replace(/\D/g, '')
           if (phone.length > 10) phone = phone.slice(0, 10)
