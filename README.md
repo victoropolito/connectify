@@ -1,7 +1,7 @@
 # Connectify - Gerenciador de Contatos
 
 ## Descrição
-Aplicação web para gerenciar contatos, com backend em Node.js e frontend em Vue.js.
+Aplicação web para gerenciar contatos, com backend em Node.js e frontend em Vue.js com Vuetify.
 
 ## Funcionalidades
 * Adicionar contatos
