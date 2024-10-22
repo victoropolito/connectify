@@ -161,18 +161,18 @@
           }
         },
         formatPhoneNumber(isEdit = false) {
-          let phone = isEdit ? this.editedContact.telefone : this.newContact.telefone;
-          phone = phone.replace(/\D/g, ''); // Remove caracteres não numéricos
-          if (phone.length > 10) phone = phone.slice(0, 10); // Limita a 10 dígitos
+          let phone = isEdit ? this.editedContact.telefone : this.newContact.telefone
+          phone = phone.replace(/\D/g, '')
+          if (phone.length > 10) phone = phone.slice(0, 10)
           if (phone.length > 6) {
-            phone = `(${phone.slice(0, 2)}) ${phone.slice(2, 6)}-${phone.slice(6, 10)}`;
+            phone = `(${phone.slice(0, 2)}) ${phone.slice(2, 6)}-${phone.slice(6, 10)}`
           } else if (phone.length > 2) {
-            phone = `(${phone.slice(0, 2)}) ${phone.slice(2)}`;
+            phone = `(${phone.slice(0, 2)}) ${phone.slice(2)}`
           }
           if (isEdit) {
-            this.editedContact.telefone = phone;
+            this.editedContact.telefone = phone
           } else {
-            this.newContact.telefone = phone;
+            this.newContact.telefone = phone
           }
         },
         openCreateModal() {
