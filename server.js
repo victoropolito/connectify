@@ -10,7 +10,8 @@ const db = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  database: process.env.DB_DATABASE
+  database: process.env.DB_DATABASE,
+  multipleStatements: true
 })
 
 app.use(express.json())
@@ -22,6 +23,21 @@ db.connect((err) => {
     return
   }
   console.log('Conectado ao banco de dados MySQL!')
+})
+
+const sql = `
+  CREATE TABLE IF NOT EXISTS contatos (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      nome VARCHAR(255) NOT NULL,
+      telefone VARCHAR(20) NOT NULL
+  );
+  `
+
+  db.query(sql, (err, result) => {
+  if (err) {
+    console.error('Erro ao criar a tabela:', err);
+    return;
+  }
 })
 
 app.listen(port, () => {

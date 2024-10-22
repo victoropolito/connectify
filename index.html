@@ -41,8 +41,16 @@
               <v-form ref="form" v-model="valid">
                 <v-text-field label="Nome" v-model="newContact.nome" :rules="[rules.required, rules.minLength]"
                   required></v-text-field>
-                <v-text-field label="Telefone" v-model="newContact.telefone" :rules="[rules.required, rules.phone]"
-                  required placeholder="(XX) XXXXX-XXXX" mask="(##) #####-####"></v-text-field>
+                <v-text-field 
+                  label="Telefone" 
+                  v-model="newContact.telefone" 
+                  :rules="[rules.required, rules.phone]"
+                  required 
+                  placeholder="(XX) XXXX-XXXX" 
+                  mask="(##) ####-####"
+                  @input="formatPhoneNumber"
+                >
+                </v-text-field>
               </v-form>
             </v-card-text>
             <v-card-actions>
@@ -61,8 +69,16 @@
               <v-form ref="formEdit" v-model="valid">
                 <v-text-field label="Nome" v-model="editedContact.nome" :rules="[rules.required, rules.minLength]"
                   required></v-text-field>
-                <v-text-field label="Telefone" v-model="editedContact.telefone" :rules="[rules.required, rules.phone]"
-                  required placeholder="(XX) XXXXX-XXXX" mask="(##) #####-####"></v-text-field>
+                <v-text-field 
+                  label="Telefone" 
+                  v-model="editedContact.telefone" 
+                  :rules="[rules.required, rules.phone]"
+                  required 
+                  placeholder="(XX) XXXX-XXXX" 
+                  mask="(##) ####-####"
+                  @input="formatPhoneNumber(true)"
+                >
+                </v-text-field>
               </v-form>
             </v-card-text>
             <v-card-actions>
@@ -99,8 +115,8 @@
           ],
           rules: {
             required: value => !!value || 'Campo obrigatório.',
-            minLength: value => value && value.length >= 3 || 'Mínimo de 3 caracteres em cada nome',
-            phone: value => /^\(\d{2}\)\s\d{4,5}-\d{4}$/.test(value) || /^\(\d{2}\)\d{4,5}-\d{4}$/.test(value) || /^\(\d{2}\)\d{4,5}\d{4}$/.test(value) || 'Telefone inválido'
+            minLength: value => value.split(' ').filter(word => word.length >= 3).length >= 2 || 'Mínimo de 3 caracteres em cada nome',
+            phone: value => /^\(\d{2}\)\s\d{4,5}-\d{4}$/.test(value) || 'Telefone inválido'
           },
         }
       },
@@ -142,6 +158,21 @@
             this.fetchContacts()
           } catch (error) {
             console.error('Erro ao excluir contato:', error)
+          }
+        },
+        formatPhoneNumber(isEdit = false) {
+          let phone = isEdit ? this.editedContact.telefone : this.newContact.telefone;
+          phone = phone.replace(/\D/g, ''); // Remove caracteres não numéricos
+          if (phone.length > 10) phone = phone.slice(0, 10); // Limita a 10 dígitos
+          if (phone.length > 6) {
+            phone = `(${phone.slice(0, 2)}) ${phone.slice(2, 6)}-${phone.slice(6, 10)}`;
+          } else if (phone.length > 2) {
+            phone = `(${phone.slice(0, 2)}) ${phone.slice(2)}`;
+          }
+          if (isEdit) {
+            this.editedContact.telefone = phone;
+          } else {
+            this.newContact.telefone = phone;
           }
         },
         openCreateModal() {
