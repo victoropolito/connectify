@@ -1,7 +1,7 @@
 require('dotenv').config()
 
 const express = require('express')
-const cors = require('cors');
+const cors = require('cors')
 const mysql = require('mysql2')
 const app = express()
 const port = 3000
@@ -15,7 +15,7 @@ const db = mysql.createConnection({
 })
 
 app.use(express.json())
-app.use(cors());
+app.use(cors())
 
 db.connect((err) => {
   if (err) {
@@ -35,8 +35,8 @@ const sql = `
 
   db.query(sql, (err, result) => {
   if (err) {
-    console.error('Erro ao criar a tabela:', err);
-    return;
+    console.error('Erro ao criar a tabela:', err)
+    return
   }
 })
 
